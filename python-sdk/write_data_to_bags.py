@@ -10,7 +10,7 @@ from geometry_msgs.msg import TransformStamped
 
 
 if __name__ == "__main__":
-    nuscenes_query = data_query(data_root = '/mnt/B4CACF59CACF1690/UbuntuData/data/nuscenes', version = 'v0.1')
+    nuscenes_query = data_query(data_root = '/mnt/B4CACF59CACF1690/UbuntuData/nuscenes_data/nuscenes', version = 'v0.1')
     # extract one scene
     scene_token = nuscenes_query.scene[0]['token']
     sample_token_list = nuscenes_query.field2token('sample', 'scene_token', scene_token)
@@ -19,7 +19,7 @@ if __name__ == "__main__":
         sample_data_token_list.append(nuscenes_query.field2token('sample_data', 'sample_token', sample_token))
     sample_data_token_list = np.concatenate(sample_data_token_list)
     i = 0
-    with rosbag.Bag('output.bag','w') as outbag:
+    with rosbag.Bag('output1.bag','w') as outbag:
         for sample_data_token in sample_data_token_list:
             sample_data = nuscenes_query.get('sample_data', sample_data_token)
             ego_pose = nuscenes_query.get('ego_pose', sample_data['ego_pose_token'])

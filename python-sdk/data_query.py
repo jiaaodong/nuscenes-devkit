@@ -158,6 +158,6 @@ class data_query:
 
 
 if __name__ == "__main__":
-    data = data_query(data_root = '/mnt/B4CACF59CACF1690/UbuntuData/data/nuscenes', version = 'v0.1')
+    data = data_query(data_root = '/mnt/B4CACF59CACF1690/UbuntuData/nuscenes_data/nuscenes', version = 'v0.1')
     
     pass
