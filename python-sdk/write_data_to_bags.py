@@ -36,10 +36,10 @@ if __name__ == "__main__":
             tf_car.transform.translation.x = ego_pose['translation'][0]
             tf_car.transform.translation.y = ego_pose['translation'][1]
             tf_car.transform.translation.z = ego_pose['translation'][2]
-            tf_car.transform.rotation.x = ego_pose['rotation'][0]
-            tf_car.transform.rotation.y = ego_pose['rotation'][1]
-            tf_car.transform.rotation.z = ego_pose['rotation'][2]
-            tf_car.transform.rotation.w = ego_pose['rotation'][3]
+            tf_car.transform.rotation.x = ego_pose['rotation'][1]
+            tf_car.transform.rotation.y = ego_pose['rotation'][2]
+            tf_car.transform.rotation.z = ego_pose['rotation'][3]
+            tf_car.transform.rotation.w = ego_pose['rotation'][0]
             
             tf_sensor = TransformStamped()
             tf_sensor.header.stamp.secs = int(time_stamp[:10])
@@ -49,12 +49,12 @@ if __name__ == "__main__":
             tf_sensor.transform.translation.x = sensor_c['translation'][0]
             tf_sensor.transform.translation.y = sensor_c['translation'][1]
             tf_sensor.transform.translation.z = sensor_c['translation'][2]
-            tf_sensor.transform.rotation.x = sensor_c['rotation'][0]
-            tf_sensor.transform.rotation.y = sensor_c['rotation'][1]
-            tf_sensor.transform.rotation.z = sensor_c['rotation'][2]
-            tf_sensor.transform.rotation.w = sensor_c['rotation'][3]
+            tf_sensor.transform.rotation.x = sensor_c['rotation'][1]
+            tf_sensor.transform.rotation.y = sensor_c['rotation'][2]
+            tf_sensor.transform.rotation.z = sensor_c['rotation'][3]
+            tf_sensor.transform.rotation.w = sensor_c['rotation'][0]
 
-            tf_msg = TFMessage([tf_car])
+            tf_msg = TFMessage([tf_car, tf_sensor])
 
             outbag.write('/tf', tf_msg, t  = tf_sensor.header.stamp)
             i+=1
