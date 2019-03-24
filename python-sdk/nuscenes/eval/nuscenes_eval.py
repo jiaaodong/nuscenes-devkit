@@ -8,6 +8,7 @@ import json
 from typing import List, Tuple, Dict, Callable
 import random
 import argparse
+import warnings
 
 import numpy as np
 import tqdm
@@ -100,6 +101,9 @@ class NuScenesEval:
         # Load and store GT and predictions.
         self.sample_tokens, self.all_annotations, self.all_results = self.load_boxes()
 
+        # Print a warning that the evaluation protocol is not finalized.
+        warnings.warn("Warning: Please note the evaluation protocol is not finalized and may be subject to change in the future.")
+
     def load_boxes(self) -> Tuple[List[str], Dict[str, List[Dict]], Dict[str, List[Dict]]]:
         """
         Loads the GT and EST boxes used in this class.
@@ -125,7 +129,7 @@ class NuScenesEval:
                 print('Loading annotations...')
 
         # Read sample_tokens.
-        splits = create_splits_logs(nusc)
+        splits = create_splits_logs(self.nusc)
         sample_tokens_all = [s['token'] for s in self.nusc.sample]
         assert len(sample_tokens_all) > 0, 'Error: Results file is empty!'
 
@@ -284,7 +288,7 @@ class NuScenesEval:
             'weighted_sum': weighted_sum,
             'eval_time': eval_time
         }
-        with open(os.path.join(output_dir, 'metrics.json'), 'w') as f:
+        with open(os.path.join(self.output_dir, 'metrics.json'), 'w') as f:
             json.dump(all_metrics, f, indent=2)
 
         return all_metrics
@@ -466,23 +470,28 @@ class NuScenesEval:
             count_vals = np.cumsum(~np.isnan(x))  # Number of non-nans up to each position.
             return np.divide(sum_vals, count_vals, out=np.zeros_like(sum_vals), where=count_vals != 0)
 
+        # Init each metric as nan.
+        tp_metrics = {key: np.nan for key in self.metric_names}
+
         # If raw_metrics are empty, this means that no GT samples exist for this class.
         # Then we set the metrics to nan and ignore their contribution later on.
-        tp_metrics = dict()
         if len(raw_metrics) == 0:
-            tp_metrics = {key: np.nan for key in self.metric_names}
             return tp_metrics
 
         for metric_name in {key: [] for key in self.metric_names}:
             # If no box was predicted for this class, no raw metrics exist and we set secondary metrics to 1.
+            # Likewise if all predicted boxes are false positives.
             metric_vals = raw_metrics[metric_name]
-            if len(metric_vals) == 0:
+            if len(metric_vals) == 0 or all(np.isnan(metric_vals)):
                 tp_metrics[metric_name] = 1
+                continue
+
+            # Certain classes do not have attributes. In this case keep nan and continue.
+            if metric_name == 'attr_err' and class_name in ['barrier', 'traffic_cone']:
                 continue
 
             # Normalize and clip metric errors.
             metric_bound = self.metric_bounds[metric_name]
-            assert np.nanmin(metric_vals) >= 0
             metric_vals = np.array(metric_vals) / metric_bound  # Normalize.
             metric_vals = np.minimum(1, metric_vals)  # Clip.
 

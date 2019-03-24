@@ -173,9 +173,9 @@ def yaw_diff(sample_annotation: Dict, sample_result: Dict) -> float:
     yaw_result = quaternion_yaw(Quaternion(sample_result['rotation']))
 
     # Compute smallest angle between two yaw values.
-    angle_diff = np.maximum(yaw_annotation - yaw_result, yaw_result - yaw_annotation)
+    angle_diff = abs(yaw_annotation - yaw_result)
     if angle_diff > np.pi:
-        angle_diff = angle_diff - np.pi  # Shift (pi, 2*pi] to (0, pi].
+        angle_diff = 2 * np.pi - angle_diff  # Shift (pi, 2*pi] to (0, pi].
     return angle_diff
 
 
@@ -200,12 +200,16 @@ def attr_acc(sample_annotation: Dict, sample_result: Dict, attributes: List[str]
     elif gt_class in ['car', 'bus', 'construction_vehicle', 'trailer', 'truck']:
         rel_attributes = ['vehicle.moving', 'vehicle.parked', 'vehicle.stopped']
     else:
+        # Classes without attributes: barrier, traffic_cone
         rel_attributes = []
 
     # Map labels to indices and compute accuracy; nan if no attributes are relevant.
     if len(rel_attributes) == 0:
         # If a class has no attributes, we return nan.
         acc = np.nan
+    elif any(np.isnan(res_scores)):
+        # Catch errors and abort early if any score is nan.
+        raise Exception('Error: attribute_score is nan. Set to -1 to ignore!')
     elif any(res_scores == IGNORE):
         # If attributes scores are set to ignore, we return an accuracy of 0.
         acc = 0
